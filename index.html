@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 Aninho da Vitória - Jardim Encantado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@400;500;600;700&family=Great+Vibes&family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #ffccdc;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .font-handwriting { font-family: 'Caveat', cursive; }
+        .font-cursive { font-family: 'Pacifico', cursive; }
+        .font-title { font-family: 'Fredoka', sans-serif; }
+        .font-script { font-family: 'Great Vibes', cursive; }
+
+        .card-container {
+            background-color: #fffafb;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-w: 420px;
+            padding: 12px;
+        }
+
+        .card-inner {
+            border: 2px dashed #ff9eba;
+            border-radius: 12px;
+            padding: 20px 15px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .wood-board {
+            background: linear-gradient(180deg, #b07e5b 0%, #8b5333 100%);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            position: relative;
+            border: 1px solid #5c351f;
+        }
+        .wood-board::before, .wood-board::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #4a2916;
+            border-radius: 50%;
+            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .wood-board::before { left: 8px; }
+        .wood-board::after { right: 8px; }
+
+        #butterflyCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #fffafb; }
+        ::-webkit-scrollbar-thumb { background: #ff9eba; border-radius: 4px; }
+
+        /* Animação do Envelope Aumentado */
+        .envelope-letter {
+            transition: transform 0.8s ease-in-out 0.4s;
+            z-index: 10;
+        }
+        .envelope-open .envelope-letter {
+            transform: translateY(-160px);
+        }
+        #envelopeFlap {
+            transform-origin: top;
+            transition: transform 0.5s ease-in-out, z-index 0s 0.15s;
+            z-index: 40;
+        }
+        .envelope-open #envelopeFlap {
+            transform: rotateX(180deg);
+            z-index: 5;
+        }
+        #envelopeSeal {
+            transition: opacity 0.3s;
+        }
+        .envelope-open #envelopeSeal {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Áudio de Fundo Lúdico/Infantil (Arquivo Local) -->
+    <audio id="bgMusic" loop>
+        <source src="musica.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Tela de Boas-Vindas em formato de Envelope Maior -->
+    <div id="welcomeScreen" class="fixed inset-0 bg-[#ffccdc] z-[100] flex flex-col items-center justify-center transition-opacity duration-1000">
+        
+        <div id="envelopeWrapper" class="relative w-[360px] h-[250px] cursor-pointer transform transition-transform hover:scale-105" onclick="startInvitation()">
+            
+            <!-- Fundo do Envelope -->
+            <div class="absolute inset-0 bg-[#f2a6b8] rounded-xl shadow-xl"></div>
+            
+            <!-- A Cartinha (Fica dentro do envelope) -->
+            <div class="envelope-letter absolute bottom-2 left-3 right-3 h-[220px] bg-white rounded-lg shadow-sm flex flex-col items-center justify-center p-4 border-2 border-dashed border-[#ff9eba]">
+                <span class="text-5xl mb-2">🌸</span>
+                <p class="font-cursive text-4xl text-[#d64959] mb-1">Jardim Encantado</p>
+                <p class="font-title text-[#5c351f] text-base font-semibold">da Vitória</p>
+            </div>
+            
+            <!-- Abas do Envelope (Laterais e Fundo) -->
+            <div class="absolute top-0 bottom-0 left-0 w-1/2 bg-[#fcb3c5] rounded-l-xl z-20" style="clip-path: polygon(0 0, 100% 50%, 0 100%);"></div>
+            <div class="absolute top-0 bottom-0 right-0 w-1/2 bg-[#fcb3c5] rounded-r-xl z-20" style="clip-path: polygon(100% 0, 0 50%, 100% 100%);"></div>
+            <div class="absolute bottom-0 left-0 w-full h-[65%] bg-[#ff9eba] rounded-b-xl z-30" style="clip-path: polygon(0 100%, 50% 0, 100% 100%);"></div>
+            
+            <!-- Aba Superior do Envelope -->
+            <div id="envelopeFlap" class="absolute top-0 left-0 w-full h-[65%] bg-[#ff85a1] rounded-t-xl" style="clip-path: polygon(0 0, 100% 0, 50% 100%);"></div>
+            
+            <!-- Selo de Coração com texto discreto embaixo -->
+            <div id="envelopeSeal" class="absolute top-[52%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 flex flex-col items-center">
+                <div class="bg-[#d64959] w-14 h-14 rounded-full flex items-center justify-center shadow-lg animate-pulse border-2 border-white">
+                    <i class="fa-solid fa-heart text-white text-2xl mt-1"></i>
+                </div>
+                <span class="text-white/90 font-title text-[11px] font-semibold tracking-wider uppercase mt-2 drop-shadow-sm">Toque para abrir</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Botão de Controle de Música Flutuante -->
+    <button id="musicToggleBtn" onclick="toggleMusic()" class="fixed top-4 right-4 z-50 bg-white/80 backdrop-blur border border-[#ff9eba] text-[#d64959] w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all hidden hover:bg-white">
+        <i class="fa-solid fa-music"></i>
+    </button>
+
+    <canvas id="butterflyCanvas"></canvas>
+
+    <div class="card-container">
+        <div class="card-inner">
+            
+            <!-- Desenho Topo -->
+            <div class="flex justify-center mb-2">
+                <svg viewBox="0 0 200 120" class="w-full h-28">
+                    <path d="M 20,60 Q 100,0 180,60" stroke="#7aa36f" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M 40,45 Q 100,10 160,45" stroke="#7aa36f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="30" cy="55" rx="5" ry="2" fill="#a4d193" transform="rotate(30 30 55)"/>
+                    <ellipse cx="170" cy="55" rx="5" ry="2" fill="#a4d193" transform="rotate(-30 170 55)"/>
+                    <ellipse cx="60" cy="25" rx="5" ry="2" fill="#a4d193" transform="rotate(20 60 25)"/>
+                    <ellipse cx="140" cy="25" rx="5" ry="2" fill="#a4d193" transform="rotate(-20 140 25)"/>
+                    <circle cx="100" cy="15" r="12" fill="#ff85a1"/><circle cx="100" cy="15" r="4" fill="#ffdd6b"/>
+                    <circle cx="65" cy="35" r="8" fill="#ffa6c9"/><circle cx="65" cy="35" r="2.5" fill="#ffdd6b"/>
+                    <circle cx="135" cy="35" r="8" fill="#ffa6c9"/><circle cx="135" cy="35" r="2.5" fill="#ffdd6b"/>
+                    <circle cx="35" cy="65" r="6" fill="#ff85a1"/><circle cx="35" cy="65" r="2" fill="#ffdd6b"/>
+                    <circle cx="165" cy="65" r="6" fill="#ff85a1"/><circle cx="165" cy="65" r="2" fill="#ffdd6b"/>
+                    
+                    <rect x="85" y="75" width="30" height="25" fill="#e3b58f" stroke="#c08a65" stroke-width="1"/>
+                    <polygon points="80,75 100,55 120,75" fill="#f26a79" stroke="#d64959" stroke-width="1"/>
+                    <rect x="82" y="100" width="36" height="4" fill="#c08a65"/>
+                    <path d="M 95,85 A 3,3 0 0,1 100,82 A 3,3 0 0,1 105,85 Q 105,89 100,93 Q 95,89 95,85 Z" fill="#5c351f"/>
+                    
+                    <ellipse cx="112" cy="50" rx="7" ry="6" fill="#66c7f4"/>
+                    <circle cx="115" cy="45" r="4" fill="#66c7f4"/>
+                    <polygon points="117,45 122,43 118,47" fill="#ffb703"/>
+                    <ellipse cx="105" cy="48" rx="4" ry="2" fill="#42a5f5" transform="rotate(-20 105 48)"/>
+                    <circle cx="114" cy="44" r="0.8" fill="#000"/>
+                </svg>
+            </div>
+
+            <div class="text-center mb-1 leading-tight">
+                <p class="font-handwriting text-xl sm:text-2xl text-gray-900 font-bold">Você está convidado(a) para</p>
+                <p class="font-handwriting text-xl sm:text-2xl text-gray-900 font-bold -mt-1">comemorar comigo o meu.</p>
+            </div>
+
+            <div class="flex justify-center items-center gap-2 my-2">
+                <span class="text-pink-400 text-3xl">♥</span>
+                <div class="font-title text-4xl sm:text-5xl font-bold flex gap-1 tracking-wide">
+                    <span class="text-[#42a5f5]">1</span>
+                    <span class="text-[#ff6b9e] ml-2">A</span>
+                    <span class="text-[#f4a261]">n</span>
+                    <span class="text-[#42a5f5]">i</span>
+                    <span class="text-[#ffb703]">n</span>
+                    <span class="text-[#84cc7c]">h</span>
+                    <span class="text-[#ff6b9e]">o</span>
+                </div>
+                <span class="text-pink-400 text-3xl">♥</span>
+            </div>
+
+            <div class="text-center mb-2">
+                <p class="font-handwriting text-xl text-gray-900 font-bold">no meu</p>
+            </div>
+
+            <div class="wood-board mx-auto max-w-[280px] py-1 px-4 my-2 flex items-center justify-between z-10">
+                <span class="text-pink-300 text-lg relative -left-6 drop-shadow-md">🌸</span>
+                <h2 class="font-cursive text-white text-2xl sm:text-3xl font-normal tracking-wide text-center drop-shadow-md relative z-10 w-full">Jardim Encantado</h2>
+                <span class="text-pink-300 text-lg relative -right-6 drop-shadow-md">🌸</span>
+            </div>
+
+            <div class="text-center my-4 flex items-center justify-center gap-2">
+                <span class="text-[#5c351f] text-xl font-bold tracking-widest">...</span>
+                <span class="text-[#5c351f] text-xl">♥</span>
+                <h1 class="font-script text-6xl text-[#1a1a1a] px-2 font-normal">Vitória</h1>
+                <span class="text-[#5c351f] text-xl">♥</span>
+                <span class="text-[#5c351f] text-xl font-bold tracking-widest">...</span>
+            </div>
+
+            <div class="bg-[#fcf4e8] border border-[#f0ded0] rounded-2xl p-4 my-4 shadow-sm relative z-20">
+                <div class="flex justify-between items-center mb-3 px-2">
+                    <div class="text-center w-5/12 flex flex-col items-center">
+                        <i class="fa-regular fa-calendar-check text-[#d64959] text-2xl mb-1"></i>
+                        <span class="font-title font-bold text-[#3d2c23] text-2xl leading-none">18</span>
+                        <span class="font-title text-[#3d2c23] text-sm leading-tight">de outubro</span>
+                    </div>
+                    <div class="w-[1.5px] h-12 bg-[#5c351f]/30"></div>
+                    <div class="text-center w-5/12 flex flex-col items-center justify-center">
+                        <i class="fa-regular fa-clock text-[#d64959] text-2xl mb-1"></i>
+                        <span class="font-title font-bold text-[#3d2c23] text-3xl leading-none">17h</span>
+                    </div>
+                </div>
+                <div class="h-[1.5px] w-full bg-[#5c351f]/30 my-3"></div>
+                <div class="flex items-center justify-center gap-2 px-1">
+                    <i class="fa-solid fa-location-dot text-[#d64959] text-2xl shrink-0"></i>
+                    <div class="text-left">
+                        <p class="font-title font-bold text-[#1a1a1a] text-base leading-snug">Av. Brasil, 412</p>
+                        <p class="text-sm text-[#4a4a4a]">Jardim Eldorado</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-4 relative z-20">
+                <a href="https://maps.app.goo.gl/WdzjzQHaoo7AMF4Y9?g_st=ac" target="_blank" rel="noopener noreferrer" class="w-full bg-[#1db954] hover:bg-[#199d47] text-white font-title py-3 px-5 rounded-full shadow-md flex items-center justify-center gap-3 transition-all cursor-pointer">
+                    <div class="bg-white rounded-full p-1.5 w-8 h-8 flex items-center justify-center">
+                        <i class="fa-solid fa-location-dot text-[#1db954] text-lg"></i>
+                    </div>
+                    <div class="text-center leading-tight">
+                        <div class="text-[14px] font-bold tracking-wide">COMO CHEGAR</div>
+                        <div class="text-[10px] font-semibold tracking-wider">(GOOGLE MAPS)</div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="flex items-end justify-between mt-6 relative">
+                
+                <div class="w-20 h-20 -ml-2">
+                    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                        <path d="M 50,60 Q 40,20 30,15 M 50,60 Q 50,20 60,10 M 50,60 Q 70,30 80,25" stroke="#7aa36f" stroke-width="2" fill="none"/>
+                        <circle cx="30" cy="15" r="7" fill="#ff85a1"/><circle cx="30" cy="15" r="2" fill="#ffdd6b"/>
+                        <circle cx="60" cy="10" r="8" fill="#ffa6c9"/><circle cx="60" cy="10" r="2.5" fill="#ffdd6b"/>
+                        <circle cx="80" cy="25" r="6" fill="#ff85a1"/><circle cx="80" cy="25" r="2" fill="#ffdd6b"/>
+                        <path d="M 25,95 L 35,50 L 75,50 L 85,95 Z" fill="#ffb3c6"/>
+                        <path d="M 75,60 L 95,45 L 90,40 L 70,55 Z" fill="#ff85a1"/>
+                        <ellipse cx="92.5" cy="42.5" rx="3" ry="6" fill="#f26a79" transform="rotate(-35 92.5 42.5)"/>
+                        <path d="M 35,55 C 10,50 5,80 28,85" stroke="#ff85a1" stroke-width="6" fill="none"/>
+                        <path d="M 50,75 A 3,3 0 0,1 55,70 A 3,3 0 0,1 60,75 Q 60,80 55,85 Q 50,80 50,75 Z" fill="#f26a79"/>
+                    </svg>
+                </div>
+
+                <div class="flex flex-col items-center justify-end pb-2">
+                    <span class="text-[10px] uppercase tracking-widest text-[#d64959] font-bold mb-1.5">Contagem Regressiva</span>
+                    <div id="countdown" class="flex justify-center gap-1.5">
+                        <div class="bg-[#ffb3c6] text-[#1a1a1a] border border-[#ff85a1] px-1 py-1 rounded-lg w-[42px] text-center shadow-sm">
+                            <span id="cd-days" class="font-title text-base font-bold block leading-none">00</span>
+                            <span class="text-[9px] uppercase font-semibold">Dias</span>
+                        </div>
+                        <div class="bg-[#ffb3c6] text-[#1a1a1a] border border-[#ff85a1] px-1 py-1 rounded-lg w-[42px] text-center shadow-sm">
+                            <span id="cd-hours" class="font-title text-base font-bold block leading-none">00</span>
+                            <span class="text-[9px] uppercase font-semibold">Horas</span>
+                        </div>
+                        <div class="bg-[#ffb3c6] text-[#1a1a1a] border border-[#ff85a1] px-1 py-1 rounded-lg w-[42px] text-center shadow-sm">
+                            <span id="cd-mins" class="font-title text-base font-bold block leading-none">00</span>
+                            <span class="text-[9px] uppercase font-semibold">Min</span>
+                        </div>
+                        <div class="bg-[#ffb3c6] text-[#1a1a1a] border border-[#ff85a1] px-1 py-1 rounded-lg w-[42px] text-center shadow-sm">
+                            <span id="cd-secs" class="font-title text-base font-bold block leading-none">00</span>
+                            <span class="text-[9px] uppercase font-semibold">Seg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-16 h-20 -mr-2">
+                    <svg viewBox="0 0 60 80" class="w-full h-full drop-shadow-md">
+                        <rect x="27" y="30" width="6" height="45" fill="#8b5333"/>
+                        <path d="M 20,75 L 25,65 L 30,75 L 35,68 L 40,75 Z" fill="#7aa36f"/>
+                        <rect x="5" y="10" width="50" height="25" rx="3" fill="#b07e5b" stroke="#5c351f" stroke-width="1"/>
+                        <line x1="5" y1="18" x2="55" y2="18" stroke="#8b5333" stroke-width="0.5"/>
+                        <line x1="5" y1="26" x2="55" y2="26" stroke="#8b5333" stroke-width="0.5"/>
+                        <path d="M 26,20 A 2,2 0 0,1 30,17 A 2,2 0 0,1 34,20 Q 34,24 30,28 Q 26,24 26,20 Z" fill="#ffb3c6"/>
+                        <ellipse cx="48" cy="10" rx="4" ry="3" fill="#d64959" transform="rotate(-15 48 10)"/>
+                        <circle cx="45" cy="8" r="1.5" fill="#1a1a1a"/>
+                        <circle cx="49" cy="9" r="0.8" fill="#1a1a1a"/>
+                        <circle cx="47" cy="11" r="0.8" fill="#1a1a1a"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3 mt-5 relative z-20">
+                <button onclick="openRSVPModal()" class="w-full bg-[#1db954] hover:bg-[#199d47] text-white text-sm sm:text-base font-title font-bold py-3 rounded-full shadow-md flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <span>Confirmar Presença</span>
+                </button>
+                <button onclick="addToCalendar()" class="w-full bg-[#42a5f5] hover:bg-[#2b88d8] text-white text-sm sm:text-base font-title font-bold py-3 rounded-full shadow-md flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-calendar-plus text-xl"></i>
+                    <span>Adicionar na Agenda</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal de RSVP -->
+    <div id="rsvpModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300 border-2 border-pink-200 text-center relative">
+            <button onclick="closeRSVPModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+            <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-600 text-2xl"><i class="fa-brands fa-whatsapp"></i></div>
+            <h3 class="font-title text-xl font-bold text-gray-800 mb-1">Confirmar Presença</h3>
+            <p class="text-xs text-gray-600 mb-4">Informe seu nome para enviar a confirmação por WhatsApp:</p>
+            <input type="text" id="guestName" placeholder="Seu nome ou da família" class="w-full px-4 py-2.5 rounded-xl border border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-400 mb-3 text-sm">
+            <div class="flex gap-2">
+                <button onclick="sendRSVP('Sim')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs sm:text-sm transition-colors shadow">✓ Vou Participar!</button>
+                <button onclick="sendRSVP('Não')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 px-3 rounded-xl text-xs sm:text-sm transition-colors">Não Poderei Ir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isMusicPlaying = false;
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        let invitationOpened = false;
+
+        function startInvitation() {
+            if (invitationOpened) return;
+            invitationOpened = true;
+
+            const envelope = document.getElementById('envelopeWrapper');
+            envelope.classList.add('envelope-open');
+            
+            setTimeout(() => {
+                const welcomeScreen = document.getElementById('welcomeScreen');
+                
+                bgMusic.volume = 0.4;
+                bgMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    musicToggleBtn.classList.remove('hidden'); 
+                }).catch(e => {
+                    console.log("Áudio bloqueado pelo navegador", e);
+                    musicToggleBtn.classList.remove('hidden');
+                    musicToggleBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                });
+                
+                welcomeScreen.classList.add('opacity-0');
+                setTimeout(() => {
+                    welcomeScreen.classList.add('hidden');
+                }, 1000);
+            }, 1500); 
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                musicToggleBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+            } else {
+                bgMusic.play();
+                musicToggleBtn.innerHTML = '<i class="fa-solid fa-music"></i>';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // --- ANIMAÇÃO DAS BORBOLETAS ---
+        const canvas = document.getElementById('butterflyCanvas');
+        const ctx = canvas.getContext('2d');
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const butterflyColors = [
+            { wing: '#f472b6', body: '#831843' }, { wing: '#fb923c', body: '#7c2d12' },
+            { wing: '#c084fc', body: '#581c87' }, { wing: '#facc15', body: '#713f12' },
+            { wing: '#38bdf8', body: '#0c4a6e' }
+        ];
+
+        class FlyingButterfly {
+            constructor(x, y) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.size = 12 + Math.random() * 14;
+                this.color = butterflyColors[Math.floor(Math.random() * butterflyColors.length)];
+                this.angle = Math.random() * Math.PI * 2;
+                this.speed = 0.8 + Math.random() * 1.5;
+                this.wingAngle = Math.random() * Math.PI * 2;
+                this.wingSpeed = 0.15 + Math.random() * 0.1;
+            }
+            update() {
+                this.wingAngle += this.wingSpeed;
+                this.angle += (Math.random() - 0.5) * 0.15;
+                this.vx = Math.cos(this.angle) * this.speed;
+                this.vy = Math.sin(this.angle) * this.speed;
+                this.x += this.vx; this.y += this.vy;
+                if (this.y < -50) this.y = canvas.height + 50;
+                if (this.y > canvas.height + 50) this.y = -50;
+                if (this.x < -50) this.x = canvas.width + 50;
+                if (this.x > canvas.width + 50) this.x = -50;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle + Math.PI / 2);
+                const flapScale = Math.sin(this.wingAngle);
+                ctx.fillStyle = this.color.wing; ctx.globalAlpha = 0.85;
+                ctx.beginPath(); ctx.ellipse(-this.size * 0.7 * Math.abs(flapScale), -this.size * 0.4, this.size * 0.8 * Math.abs(flapScale), this.size * 0.6, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(-this.size * 0.5 * Math.abs(flapScale), this.size * 0.3, this.size * 0.5 * Math.abs(flapScale), this.size * 0.4, -Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(this.size * 0.7 * Math.abs(flapScale), -this.size * 0.4, this.size * 0.8 * Math.abs(flapScale), this.size * 0.6, -Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(this.size * 0.5 * Math.abs(flapScale), this.size * 0.3, this.size * 0.5 * Math.abs(flapScale), this.size * 0.4, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 0.6;
+                ctx.beginPath(); ctx.arc(-this.size * 0.8 * Math.abs(flapScale), -this.size * 0.4, this.size * 0.15, 0, Math.PI * 2); ctx.arc(this.size * 0.8 * Math.abs(flapScale), -this.size * 0.4, this.size * 0.15, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = this.color.body; ctx.globalAlpha = 1.0;
+                ctx.beginPath(); ctx.ellipse(0, 0, 2, this.size * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = this.color.body; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(0, -this.size * 0.5); ctx.quadraticCurveTo(-4, -this.size * 0.9, -6, -this.size * 0.8); ctx.moveTo(0, -this.size * 0.5); ctx.quadraticCurveTo(4, -this.size * 0.9, 6, -this.size * 0.8); ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        const butterflies = [];
+        const butterflyCount = 14;
+        for (let i = 0; i < butterflyCount; i++) { butterflies.push(new FlyingButterfly()); }
+
+        window.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('#envelopeWrapper')) return;
+            for (let i = 0; i < 3; i++) {
+                butterflies.push(new FlyingButterfly(e.clientX + (Math.random() - 0.5) * 40, e.clientY + (Math.random() - 0.5) * 40));
+                if (butterflies.length > 25) butterflies.shift();
+            }
+        });
+
+        function animateButterflies() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            butterflies.forEach(b => { b.update(); b.draw(); });
+            requestAnimationFrame(animateButterflies);
+        }
+        animateButterflies();
+
+        // --- LOGICA DO CONVITE ---
+        function updateCountdown() {
+            const now = new Date();
+            let targetYear = now.getFullYear();
+            let eventDate = new Date(targetYear, 9, 18, 17, 0, 0);
+            if (now > eventDate) { eventDate = new Date(targetYear + 1, 9, 18, 17, 0, 0); }
+            const diff = eventDate - now;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const mins = Math.floor((diff / 1000 / 60) % 60);
+            const secs = Math.floor((diff / 1000) % 60);
+            document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+            document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+            document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
+            document.getElementById('cd-secs').innerText = String(secs).padStart(2, '0');
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        function openRSVPModal() {
+            const modal = document.getElementById('rsvpModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }
+        function closeRSVPModal() {
+            const modal = document.getElementById('rsvpModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+        }
+        function sendRSVP(status) {
+            const name = document.getElementById('guestName').value.trim() || 'Convidado';
+            let msg = '';
+            if (status === 'Sim') { msg = `Olá! Confirmando presença no 1º Aninho da Vitória (Jardim Encantado)! 🌸✨\n\nNome: ${name}\nPresença: CONFIRMADA! 🎉`; }
+            else { msg = `Olá! Agradeço o convite carinhoso do 1º Aninho da Vitória, mas infelizmente não poderei comparecer. 💖\n\nNome: ${name}`; }
+            
+            window.open(`https://api.whatsapp.com/send?phone=5598991202439&text=${encodeURIComponent(msg)}`, '_blank');
+            closeRSVPModal();
+        }
+
+        function addToCalendar() {
+            const title = encodeURIComponent("1º Aninho da Vitória - Jardim Encantado 🌸");
+            const details = encodeURIComponent("Venha comemorar com a gente o primeiro aninho da Vitória!\nLocalização: https://maps.app.goo.gl/WdzjzQHaoo7AMF4Y9?g_st=ac");
+            const location = encodeURIComponent("Av. Brasil, 412 - Jardim Eldorado");
+            window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=20261018T200000Z/20261018T230000Z`, '_blank');
+        }
+    </script>
+</body>
+</html>
